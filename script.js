@@ -8,6 +8,7 @@ var session = enigma.create(config);
 session.open().then(function(qlik) {
 
   qlik.openDoc('WBY Sales.qvf').then(function(app) {
+    // Pie Generic Object Def
     var pieDef = {
       qInfo: {
         qType: 'myPieChart'
@@ -38,6 +39,39 @@ session.open().then(function(qlik) {
       }
     };
 
+    
+    // Bar Generic Object Def
+    var barDef = {
+      qInfo: {
+        qType: 'myBarChart'
+      },
+      qHyperCubeDef: {
+        qDimensions: [
+          {
+            qDef: {
+              qFieldDefs: ['Year']
+            }
+          }
+        ],
+        qMeasures: [
+          {
+            qDef: {
+              qDef: "=Sum(OrderLineAmount)"
+            }
+          }
+        ],
+        qInitialDataFetch: [
+          {
+            qTop: 0,
+            qLeft: 0,
+            qWidth: 2,
+            qHeight: 20
+          }
+        ]
+      }
+    };
+
+
     // Create Generic Object with HyperCube
     app.createSessionObject(pieDef).then(function(model) {
       // Render PIE every time the model changes
@@ -46,7 +80,18 @@ session.open().then(function(qlik) {
       });
       // Render PIE when the object initizalizes
       renderPie(model, 'PIE');
-    })
+    });
+
+
+    // Create Generic Object with HyperCube
+    app.createSessionObject(barDef).then(function(model) {
+      // Render BAR every time the model changes
+      model.addListener('changed', function() {
+        renderBar(model, 'BAR');
+      });
+      // Render BAR when the object initizalizes
+      renderBar(model, 'BAR');
+    });
   })
 })
 
@@ -82,7 +127,30 @@ function renderPie(model, elementId) {
 
 // BAR
 function renderBar(model, elementId) {
-  
+  model.getLayout().then(function(layout) {
+    var qMatrix = layout.qHyperCube.qDataPages[0].qMatrix;
+    // Reformatting qMatrix data into amChart format
+    var amData = qMatrix.map(function(qMatrixRow) {
+      return {
+        dim: qMatrixRow[0].qText,
+        exp: qMatrixRow[1].qNum,
+        elemNumber: qMatrixRow[0].qElemNumber
+      }
+    });
+
+    // Render Bar Chart
+    AmCharts.makeChart(elementId, {
+      type: 'serial',
+      dataProvider: amData,
+      graphs: [{
+        balloonText: '[[category]]: <b>[[value]]</b>',
+        fillAlphas: 1,
+        type: 'column',
+        valueField: 'exp'
+      }],
+      categoryField: 'dim'
+    })
+  })
 }
 
 
