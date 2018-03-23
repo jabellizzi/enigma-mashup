@@ -44,46 +44,24 @@ session.open().then(function(qlik) {
 
     // Create Generic Object with HyperCube
     app.createSessionObject(myDef).then(function(model) {
-      renderBar(model, 'chart1');
 
-      model.addListener('changed', function() {
-        renderBar(model, 'chart1');
-      });
     })
   })
 })
 
+// PIE
+function renderPie(model, elementId) {
 
+}
+
+
+// BAR
 function renderBar(model, elementId) {
-  model.getLayout().then(function(layout) {
-    var qMatrix = layout.qHyperCube.qDataPages[0].qMatrix;
+  
+}
 
-    // Reformatting qMatrix data into amChart format
-    var amData = qMatrix.map(function(qMatrixRow) {
-      return {
-        dim: qMatrixRow[0].qText,
-        exp: qMatrixRow[1].qNum,
-        elemNumber: qMatrixRow[0].qElemNumber
-      }
-    });
 
-    // Define am chart configuration
-    AmCharts.makeChart(elementId, {
-      type: 'serial',
-      dataProvider: amData,
-      categoryField: 'dim',
-      graphs: [{
-        fillAlphas: 1,
-        type: 'column',
-        valueField: 'exp'
-      }],
-      listeners: [{
-        event: 'clickGraphItem',
-        method: function(vis) {
-          var elemNumber = vis.item.dataContext.elemNumber;
-          model.selectHyperCubeValues('/qHyperCubeDef', 0, [elemNumber], true)
-        }
-      }]
-    });
-  })
+// LINE
+function renderLine(model, elementId) {
+  
 }
