@@ -70,6 +70,38 @@ session.open().then(function(qlik) {
         ]
       }
     };
+    
+    
+    // Line Generic Object Def
+    var lineDef = {
+      qInfo: {
+        qType: 'myLineChart'
+      },
+      qHyperCubeDef: {
+        qDimensions: [
+          {
+            qDef: {
+              qFieldDefs: ['WeekYear']
+            }
+          }
+        ],
+        qMeasures: [
+          {
+            qDef: {
+              qDef: "=Sum(OrderLineAmount)"
+            }
+          }
+        ],
+        qInitialDataFetch: [
+          {
+            qTop: 0,
+            qLeft: 0,
+            qWidth: 2,
+            qHeight: 50
+          }
+        ]
+      }
+    };
 
 
     // Create Generic Object with HyperCube
@@ -91,6 +123,17 @@ session.open().then(function(qlik) {
       });
       // Render BAR when the object initizalizes
       renderBar(model, 'BAR');
+    });
+
+
+    // Create Generic Object with HyperCube
+    app.createSessionObject(lineDef).then(function(model) {
+      // Render LINE every time the model changes
+      model.addListener('changed', function() {
+        renderLine(model, 'LINE');
+      });
+      // Render LINE when the object initizalizes
+      renderLine(model, 'LINE');
     });
   })
 })
@@ -156,5 +199,28 @@ function renderBar(model, elementId) {
 
 // LINE
 function renderLine(model, elementId) {
-  
+  model.getLayout().then(function(layout) {
+    var qMatrix = layout.qHyperCube.qDataPages[0].qMatrix;
+    // Reformatting qMatrix data into amChart format
+    var amData = qMatrix.map(function(qMatrixRow) {
+      return {
+        dim: qMatrixRow[0].qText,
+        exp: qMatrixRow[1].qNum,
+        elemNumber: qMatrixRow[0].qElemNumber
+      }
+    });
+
+    // Render Line Chart
+    AmCharts.makeChart(elementId, {
+      type: 'serial',
+      dataProvider: amData,
+      graphs: [{
+        balloonText: '[[category]]: <b>[[value]]</b>',
+        bullet: 'round',
+        bulletSize: 5,
+        valueField: 'exp'
+      }],
+      categoryField: 'dim'
+    })
+  })
 }
