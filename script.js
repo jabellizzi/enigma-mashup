@@ -191,7 +191,14 @@ function renderBar(model, elementId) {
         type: 'column',
         valueField: 'exp'
       }],
-      categoryField: 'dim'
+      categoryField: 'dim',
+      listeners: [{
+        event: 'clickGraphItem',
+        method: function(vis) {
+          var elemNumber = vis.item.dataContext.elemNumber;
+          model.selectHyperCubeValues('/qHyperCubeDef', 0, [elemNumber], true);
+        }
+      }]
     })
   })
 }
